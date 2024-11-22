@@ -10,30 +10,35 @@ import org.antlr.v4.runtime.misc.NotNull;
 
 import java.time.LocalDate;
 
+@Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@AllArgsConstructor
+@Table(name = "farms")
 public class Farm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @NotNull
+    @Column(nullable = false)
     private String location;
 
-    @NotNull
-    private Double area; // Superficie totale en hectares
+    @Column(nullable = false)
+    private Double area;
 
-    @NotNull
+    @Column(name = "creation_date", nullable = false)
     private LocalDate creationDate;
 
-//    @OneToMany(mappedBy = "farm", cascade = CascadeType.ALL)
-//    private List<Field> fields = new ArrayList<>();
+    @OneToMany(mappedBy = "farm", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Field> fields = new ArrayList<>();
 
-
+    public boolean canAddField(Double fieldArea) {
+        double totalArea = fields.stream().mapToDouble(Field::getArea).sum();
+        return (totalArea + fieldArea) < this.area;
+    }
 }
+
