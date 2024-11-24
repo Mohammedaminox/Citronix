@@ -1,4 +1,4 @@
-package com.ferme.citronix;
+package org.aicha.citronix;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
