@@ -1,47 +1,32 @@
 package com.ferme.citronix.service;
 
-import com.ferme.citronix.dto.request.FarmRequestDTO;
-import com.ferme.citronix.dto.response.FarmResponseDTO;
-import com.ferme.citronix.mapper.FarmMapper;
-import com.ferme.citronix.model.Farm;
-import com.ferme.citronix.repository.FarmRepository;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
+import jakarta.validation.Valid;
+import com.ferme.citronix.domain.Farm;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-public class FarmService {
-    private final FarmRepository farmRepository;
-    private final FarmMapper farmMapper;
+public interface FarmService {
 
-    public FarmResponseDTO createFarm(FarmRequestDTO farmRequestDTO) {
-        Farm farm = farmMapper.toEntity(farmRequestDTO);
-        return farmMapper.toResponseDTO(farmRepository.save(farm));
-    }
+    Farm save(Farm farm);
 
-    public List<FarmResponseDTO> getAllFarms() {
-        return farmMapper.toResponseDTOList(farmRepository.findAll());
-    }
+    Optional<Farm> findById(UUID id);
 
-    public FarmResponseDTO getFarmById(Long id) {
-        Farm farm = farmRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Farm not found"));
-        return farmMapper.toResponseDTO(farm);
-    }
+    Page<Farm> findAll(Pageable pageable);
 
-    public FarmResponseDTO updateFarm(Long id, FarmRequestDTO dto) {
-        Farm farm = farmRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Farm not found"));
+    void delete(Farm farm);
 
-        farm.setName(dto.getName());
-        farm.setLocation(dto.getLocation());
-        farm.setArea(dto.getArea());
-        farm.setCreationDate(dto.getCreationDate());
+    List<Farm> searchFarms(String name, String location, LocalDate startDate);
 
-        return farmMapper.toResponseDTO(farmRepository.save(farm));
-    }
+    Farm addFarmWithFields(@Valid Farm farmDTO);
+    Farm updateFarm(UUID id, Farm updatedFarm);
+
+
+
+
 }
-
