@@ -10,6 +10,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  docker:
+    compose:
+      enabled: false
+  liquibase:
+    enabled: false
+
 
 server:
   port: 8080
