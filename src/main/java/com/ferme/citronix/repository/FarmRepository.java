@@ -3,9 +3,14 @@ package com.ferme.citronix.repository;
 import com.ferme.citronix.model.Farm;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface FarmRepository extends JpaRepository<Farm, Long>, JpaSpecificationExecutor<Farm> {
-}
+import java.util.List;
 
+@Repository
+public interface FarmRepository extends JpaRepository<Farm, Integer>, JpaSpecificationExecutor<Farm> {
+    @Query("SELECT f FROM Farm f WHERE f.name = :name AND f.location = :location")
+    List<Farm> findByNameAndLocation(@Param("name") String name, @Param("location") String location);
+}

@@ -1,40 +1,51 @@
 package com.ferme.citronix.controller;
 
-import com.ferme.citronix.dto.request.FarmRequestDTO;
-import com.ferme.citronix.dto.response.FarmResponseDTO;
-import com.ferme.citronix.mapper.FarmMapper;
-import com.ferme.citronix.model.Farm;
+import com.ferme.citronix.dto.FarmDto;
 import com.ferme.citronix.service.FarmService;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/farms")
-@RequiredArgsConstructor
+@Validated
 public class FarmController {
-    private final FarmService farmService;
 
-    @PostMapping
-    public ResponseEntity<FarmResponseDTO> createFarm(@RequestBody @Valid FarmRequestDTO dto) {
-        return ResponseEntity.ok(farmService.createFarm(dto));
-    }
+    @Autowired
+    private FarmService farmService;
 
     @GetMapping
-    public ResponseEntity<List<FarmResponseDTO>> getAllFarms() {
-        return ResponseEntity.ok(farmService.getAllFarms());
+    public ResponseEntity<List<FarmDto>> getAllFarms() {
+        List<FarmDto> farms = farmService.getAllFarms();
+        return ResponseEntity.ok(farms);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FarmResponseDTO> getFarmById(@PathVariable Long id) {
-        return ResponseEntity.ok(farmService.getFarmById(id));
+    public ResponseEntity<FarmDto> getFarmById(@PathVariable Integer id) {
+        FarmDto farm = farmService.getFarmById(id);
+        return ResponseEntity.ok(farm);
+    }
+
+    @PostMapping
+    public ResponseEntity<FarmDto> createFarm(@Valid @RequestBody FarmDto farmDto) {
+        FarmDto createdFarm = farmService.createFarm(farmDto);
+        return ResponseEntity.ok(createdFarm);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<FarmResponseDTO> updateFarm(@PathVariable Long id, @RequestBody @Valid FarmRequestDTO dto) {
-        return ResponseEntity.ok(farmService.updateFarm(id, dto));
+    public ResponseEntity<FarmDto> updateFarm(@PathVariable Integer id, @Valid @RequestBody FarmDto farmDto) {
+        farmDto.setId(id);
+        FarmDto updatedFarm = farmService.updateFarm(farmDto);
+        return ResponseEntity.ok(updatedFarm);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFarm(@PathVariable Integer id) {
+        farmService.deleteFarm(id);
+        return ResponseEntity.noContent().build();
     }
 }

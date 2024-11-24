@@ -1,47 +1,95 @@
 package com.ferme.citronix.service;
 
-import com.ferme.citronix.dto.request.FarmRequestDTO;
-import com.ferme.citronix.dto.response.FarmResponseDTO;
+import com.ferme.citronix.dto.FarmDto;
 import com.ferme.citronix.mapper.FarmMapper;
 import com.ferme.citronix.model.Farm;
 import com.ferme.citronix.repository.FarmRepository;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
+import com.ferme.citronix.web.exception.CustomException;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class FarmService {
-    private final FarmRepository farmRepository;
-    private final FarmMapper farmMapper;
 
-    public FarmResponseDTO createFarm(FarmRequestDTO farmRequestDTO) {
-        Farm farm = farmMapper.toEntity(farmRequestDTO);
-        return farmMapper.toResponseDTO(farmRepository.save(farm));
+    @Autowired
+    private FarmRepository farmRepository;
+
+    @Autowired
+    private FarmMapper farmMapper;
+
+    public List<FarmDto> getAllFarms() {
+        List<Farm> farms = farmRepository.findAll();
+        if (farms.isEmpty()) {
+            throw new CustomException("No farms found.");
+        }
+        return farms.stream().map(farmMapper::toDto).collect(Collectors.toList());
     }
 
-    public List<FarmResponseDTO> getAllFarms() {
-        return farmMapper.toResponseDTOList(farmRepository.findAll());
+    public FarmDto getFarmById(Integer id) {
+        Farm farm = farmRepository.findById(id).orElseThrow(() -> new CustomException("Farm not found with id: " + id));
+        return farmMapper.toDto(farm);
     }
 
-    public FarmResponseDTO getFarmById(Long id) {
-        Farm farm = farmRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Farm not found"));
-        return farmMapper.toResponseDTO(farm);
+    public FarmDto createFarm(FarmDto farmDto) {
+        try {
+            Farm farm = farmMapper.toEntity(farmDto);
+            return farmMapper.toDto(farmRepository.save(farm));
+        } catch (Exception e) {
+            throw new CustomException("Failed to create farm: " + e.getMessage());
+        }
     }
 
-    public FarmResponseDTO updateFarm(Long id, FarmRequestDTO dto) {
-        Farm farm = farmRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Farm not found"));
+    public FarmDto updateFarm(FarmDto farmDto) {
+        if (!farmRepository.existsById(farmDto.getId())) {
+            throw new CustomException("Farm not found with id: " + farmDto.getId());
+        }
+        try {
+            Farm farm = farmMapper.toEntity(farmDto);
+            return farmMapper.toDto(farmRepository.save(farm));
+        } catch (Exception e) {
+            throw new CustomException("Failed to update farm: " + e.getMessage());
+        }
+    }
 
-        farm.setName(dto.getName());
-        farm.setLocation(dto.getLocation());
-        farm.setArea(dto.getArea());
-        farm.setCreationDate(dto.getCreationDate());
+    public void deleteFarm(Integer id) {
+        if (!farmRepository.existsById(id)) {
+            throw new CustomException("Farm not found with id: " + id);
+        }
+        try {
+            farmRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new CustomException("Failed to delete farm: " + e.getMessage());
+        }
+    }
 
-        return farmMapper.toResponseDTO(farmRepository.save(farm));
+    public List<FarmDto> findByNameAndLocation(String name, String location) {
+        List<Farm> farms = farmRepository.findByNameAndLocation(name, location);
+        if (farms.isEmpty()) {
+            throw new CustomException("No farms found with the given name and location.");
+        }
+        return farms.stream().map(farmMapper::toDto).collect(Collectors.toList());
+    }
+
+    public List<FarmDto> searchFarms(String name, String location, Double area) {
+        List<Farm> farms = farmRepository.findAll((Root<Farm> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+            Predicate namePredicate = cb.like(root.get("name"), "%" + name + "%");
+            Predicate locationPredicate = cb.like(root.get("location"), "%" + location + "%");
+            Predicate areaPredicate = cb.equal(root.get("area"), area);
+            return cb.and(namePredicate, locationPredicate, areaPredicate);
+        });
+
+        if (farms.isEmpty()) {
+            throw new CustomException("No farms found with the given criteria.");
+        }
+
+        return farms.stream().map(farmMapper::toDto).collect(Collectors.toList());
     }
 }
 

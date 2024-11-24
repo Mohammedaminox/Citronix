@@ -2,19 +2,19 @@ package com.ferme.citronix.model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
-@Entity
-@Getter
 @Setter
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Entity
 @Table(name = "farms")
 public class Farm {
     @Id
@@ -33,12 +33,8 @@ public class Farm {
     @Column(name = "creation_date", nullable = false)
     private LocalDate creationDate;
 
-    @OneToMany(mappedBy = "farm", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Field> fields = new ArrayList<>();
+    @OneToMany(mappedBy = "farm", cascade = CascadeType.ALL)
+    private List<Field> fields;
 
-    public boolean canAddField(Double fieldArea) {
-        double totalArea = fields.stream().mapToDouble(Field::getArea).sum();
-        return (totalArea + fieldArea) < this.area;
-    }
 }
 

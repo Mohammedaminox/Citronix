@@ -1,17 +1,16 @@
 package com.ferme.citronix.mapper;
 
-import com.ferme.citronix.dto.request.FarmRequestDTO;
-import com.ferme.citronix.dto.response.FarmResponseDTO;
+import com.ferme.citronix.dto.FarmDto;
 import com.ferme.citronix.model.Farm;
+import com.ferme.citronix.web.vm.FarmVM;
 import org.mapstruct.Mapper;
 
 
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface FarmMapper {
-    Farm toEntity(FarmRequestDTO dto);
-    FarmResponseDTO toResponseDTO(Farm farm);
-    List<FarmResponseDTO> toResponseDTOList(List<Farm> farms);
+    FarmDto toDto(Farm farm);
+    Farm toEntity(FarmDto farmDto);
+    FarmVM toVm(Farm farm);
 }
 
